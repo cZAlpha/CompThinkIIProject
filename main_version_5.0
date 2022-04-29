@@ -1,0 +1,403 @@
+"""
+Zombiola Simulation
+
+@ author Noah Klaus
+@ version 6.0
+"""
+import random
+import time
+import matplotlib.pyplot as plt
+
+
+class Scientist(object):
+    def __init__(self, _ID, _health, _fieldOfStudy):
+        self.ID = _ID
+        self.health = _health
+        self.x = 0
+        self.y = 0
+        self.fieldOfStudy = _fieldOfStudy
+        self.hunger = 0
+
+
+    def Walk(self):
+        print("A Scientist Cannot Walk...")
+
+    def Attack(self):
+        print("A Scientist Cannot Attack...")
+
+
+class Susceptible(Scientist):
+    def Walk(self):
+        # Variables
+        SusceptibleStepLowerBound = -2
+        SusceptibleStepUpperBound = 2
+
+        step = random.randint( SusceptibleStepLowerBound, SusceptibleStepUpperBound )
+        if (self.x + step < 1 or self.x + step > 10) == False:
+            self.x = self.x + step
+        elif (self.y + step < 1 or self.y + step> 10) == False:
+            self.y = self.y + step
+
+        # Prints the movement of the object
+        print("Susceptible: " + str(self.ID) + " walks to (" + str(self.x) + ", " + str(self.y) + ")" )
+
+    def PrintID(self):
+        print( str(self.ID), end = '' )
+
+    def Attack(self):
+        outcome = random.randint(1, 100)
+        if ( outcome <= self.health):
+            return True
+        else:
+            return False
+
+
+class Infected(Susceptible):
+
+    def Consume(self):
+        print("Infected: " + str(self.ID) + " consumes " + "<?who/what was consumed?>")
+
+    def Walk(self):
+        # Variables
+        InfectedStepLowerBound = -2
+        InfectedStepUpperBound = 1
+
+        step = random.randint(InfectedStepLowerBound, InfectedStepUpperBound)
+        if (self.x + step < 1 or self.x + step > 10) == False:
+            self.x = self.x + step
+        elif (self.y + step < 1 or self.y + step > 10) == False:
+            self.y = self.y + step
+
+        # Prints the movement of the object
+        print("Infected: " + str(self.ID) + " walks to (" + str(self.x) + ", " + str(self.y) + ")")
+
+    def Attack(self):
+        outcome = random.randint(1, 100)
+        if (outcome >= self.health):
+            return True
+        else:
+            return False
+
+    def TimeInfected(self):
+        print("Infected: " + str(self.ID) + " has been infected for " + "<?how long?>")
+
+    def PrintID(self):
+        print(str(self.ID), end='')
+
+
+class Mutated(Infected):
+    def __init__(self, _ID, _health, _fieldOfStudy):
+        super().__init__(_ID, _health, _fieldOfStudy)
+        self.ID = _ID
+        self.Mutation = random.randint(1,6)
+        self.health = _health
+        self.fieldOfStudy = _fieldOfStudy
+
+
+    def Walk(self):
+        # Variables
+        MutatedStepLowerBound = -3
+        MutatedStepUpperBound = 3
+
+        step = random.randint(MutatedStepLowerBound, MutatedStepUpperBound)
+        if (self.x + step < 1 or self.x + step > 10) == False:
+            self.x = self.x + step
+        elif (self.y + step < 1 or self.y + step > 10) == False:
+            self.y = self.y + step
+
+        # Prints the movement of the object
+        print("Infected: " + str(self.ID) + " walks to (" + str(self.x) + ", " + str(self.y) + ")")
+
+    def Attack(self):
+        outcome = random.randint(1, 100)
+        if (outcome >= self.health + self.Mutation):
+            return True
+        else:
+            return False
+
+
+class Recovered(Infected):
+    def Consume(self):
+        print("Recovered: " + str(self.ID) + " consumes " + "<?what was consumed?>")
+
+    def Walk(self):
+        print("Recovered: " + str(self.ID) + " walks " + "<?how far?>")
+
+    def Attack(self):
+        print("Recovered: " + str(self.ID) + " attacked " + "<?what was attacked?>")
+
+
+class Dead(object):
+    def __init__(self, _ID, _health, _fieldOfStudy):
+        super().__init__()
+        self.ID = _ID
+        self.health = _health
+        self.fieldOfStudy = _fieldOfStudy
+
+    def Consume(self):
+        print("Dead people cannot consume")
+
+    def Walk(self):
+        print("Dead cannot walk")
+
+    def Attack(self):
+        print("Dead cannot attack")
+
+
+def Main():
+    # SIMULATION VARIABLES
+    scientistCount = 50
+    susceptibleCount = 46
+    infectedCount = scientistCount - susceptibleCount
+    mutatedCount = 0
+    deadCount = (scientistCount - susceptibleCount - infectedCount - mutatedCount)
+    recoveredCount = 0
+    AMOUNT_OF_HEALTH_LOST_AFTER_WINNING_FIGHT = 5
+
+    # INITIALIZES THE LISTS FOR PLOTTING FOR THE SUS. AND INF.
+    susceptibleCount_PlotList = []
+    infectedCount_PlotList = []
+    mutatedCount_PlotList = []
+    recoveredCount_PlotList = []
+    deadCount_PlotList = []
+
+    # INITIALIZES THE LISTS FOR ALL CLASSES
+    susceptibleList = []
+    infectedList = []
+    mutatedList = []
+    recoveredList = []
+    deadList = []
+
+    # ADDS THE INITIAL VALUE OF SUS. AND INF. TO THEIR RESPECTIVE LISTS
+    susceptibleCount_PlotList.append(susceptibleCount)
+    infectedCount_PlotList.append(infectedCount)
+    mutatedCount_PlotList.append(mutatedCount)
+    recoveredCount_PlotList.append(recoveredCount)
+    deadCount_PlotList.append(deadCount)
+
+
+    # FIRST INITILIZATION LOOP
+    # FOR SUSCEPTIBLES
+    for i in range(susceptibleCount):
+        # ID
+        id = i + 1
+
+
+        # HEALTH
+        health = 100
+
+
+        # Field of Study
+        FieldOfStudyList = ["Chemist", "Physicist", "Chem. Engineer", "Anthropologist", "Geologist"]
+        FieldOfStudyChoice = random.randint(0,4)
+        FieldOfStudy = FieldOfStudyList[FieldOfStudyChoice]
+
+
+        # Making the objects from class
+        placeHolderSusceptible = Susceptible(id, health, FieldOfStudy)
+        # Adds the object to overall list
+        susceptibleList.append(placeHolderSusceptible)
+
+
+    # SECOND INITILIZATION LOOP
+    # FOR INFECTED
+    for i in range(infectedCount):
+        # ID
+        id = i + 1
+
+
+        # HEALTH
+        health = random.randint(40, 60)
+
+
+        # Field of Study
+        FieldOfStudyList = ["Chemist", "Physicist", "Chem. Engineer", "Anthropologist", "Geologist"]
+        FieldOfStudyChoice = random.randint(0,4)
+        FieldOfStudy = FieldOfStudyList[FieldOfStudyChoice]
+
+
+        # Making the objects from class using variables made above
+        placeHolderInfected = Infected(id, health, FieldOfStudy)
+        # Adds the object to overall list
+        infectedList.append(placeHolderInfected)
+
+
+    # Prints how large each class' list is
+    print("***************************")
+    print("Number of Susceptibles: " + str(len(susceptibleList)))
+    print("Number of Infected: " + str(len(infectedList)))
+    print("Number of Mutated: " + str(len(mutatedList)))
+    print("Number of Recovered: " + str(len(recoveredList)))
+    print("Number of Dead: " + str(len(deadList)))
+    print("***************************")
+
+
+    # Time variable
+    t = 0
+    while (susceptibleCount != 0):
+        t += 1
+        print("*******************")
+        print("Day number: " + str(t))
+        print("*******************")
+
+
+        # Survivor List and Variable
+        SurvivingSusceptibleCount = 0
+        SurvivingSusceptibleList = []
+
+
+        if ( ( t >= 100 ) or ( (infectedCount + mutatedCount) < 1 )):
+            break
+
+
+        for s in susceptibleList:
+            # Makes the susceptibles move
+            SusceptibleSurvives = True
+            s.Walk()
+
+
+            for i in infectedList:
+                i.Walk()
+
+
+                if ( (s.x == i.x) and (s.y == i.y) ):
+                    print("===============================================")
+                    print("Susceptible: ", end='')
+                    s.PrintID()
+                    print(" has fought Infected: ", end='')
+                    i.PrintID()
+                    print("")
+
+
+                    survivalRandomizer = random.randint(1,4)
+                    if ( (s.Attack() == True and s.health > i.health) and (survivalRandomizer > 2)): # Susceptible Wins
+                        print("Susceptible: ", end = '')
+                        s.PrintID()
+                        print(" has won and killed Infected: ", end = '')
+                        i.PrintID()
+                        print(".")
+                        print("===============================================")
+
+
+                        # INITIALIZES A NEW DEAD
+                        Dead_Susceptible = Dead( (deadCount + 1), 50, "X")
+                        # APPEND THAT NEW DEAD TO THE LIST OF DEADS
+                        deadList.append(Dead_Susceptible)
+                        # INCREMENTS DEAD COUNT
+                        deadCount += 1
+
+
+                        # DECRIMENTS INFECTED COUNT
+                        infectedCount -= 1
+                        infectedList.remove(i)
+                        break
+
+
+                    else: # Susceptible Loses
+                        SusceptibleSurvives = False
+
+                        # IMPLEMENTS A 80% CHANCE OF BECOMING AN INFECTED
+                        mutationRandomizer = random.randint(1, 100)
+                        if (mutationRandomizer > 30):
+                            # INITIIALIZE A NEW INFECTED
+                            Surviving_Infected = Infected(infectedCount + 1, 50, "X")
+                            # APPEND THAT NEW INFECTED TO THE LIST OF INFECTED
+                            infectedList.append(Surviving_Infected)
+                            # INCREMENTS INFECTED COUNT
+                            infectedCount += 1
+
+
+                        # IMPLEMENTS A 10% CHANCE OF BECOMING A RECOVERED
+                        elif ( mutationRandomizer < 30 and mutationRandomizer > 10):
+                            # INITIALIZE A NEW RECOVERED
+                            PlaceHolderRecovered = Recovered( ( recoveredCount + 1 ), 1, "X" )
+                            # APPEND THAT NEW RECOVERED TO THE LIST OF RECOVERED
+                            recoveredList.append( (PlaceHolderRecovered) )
+                            # INCREMENTS THE RECOVERED COUNT
+                            recoveredCount += 1
+
+
+                        # IMPLEMENTS A 10% CHANCE OF BECOMING A MUTATED
+                        else:
+                            # INITIIALIZE A NEW MUTATED
+                            Surviving_Mutated = Mutated( (infectedCount + 1), 50, "X")
+                            # APPEND THAT NEW MUTATED TO THE LIST OF MUTATED
+                            infectedList.append(Surviving_Mutated)
+                            # INCREMENTS MUTATED COUNT
+                            mutatedCount += 1
+                        
+
+                        print("Infected: ", end = '')
+                        i.PrintID()
+                        print(" has won and killed Susceptible: ", end='')
+                        s.PrintID()
+                        print(".")
+                        print("========================================")
+                        break
+
+
+            if SusceptibleSurvives == True:
+                print("**********************************")
+                print("Susceptible: ", end = '')
+                s.PrintID()
+                print(" survived day:", t)
+                print("**********************************")
+
+
+                # Increments and appends the surviving susceptible to the count and list, respectively
+                SurvivingSusceptibleCount += 1
+                SurvivingSusceptibleList.append(s)
+
+
+                # Subtracts from their health even though they won
+                s.health -= AMOUNT_OF_HEALTH_LOST_AFTER_WINNING_FIGHT
+
+
+
+
+        # Sets susceptibles equal to the surviving susceptibles
+        susceptibleList = SurvivingSusceptibleList
+        susceptibleCount = SurvivingSusceptibleCount
+
+
+        # Takes the number of Inf., Sus., Mut., and Dead and Appends them to their respective graph list
+        susceptibleCount_PlotList.append(susceptibleCount)
+        infectedCount_PlotList.append(infectedCount)
+        deadCount_PlotList.append(deadCount)
+        recoveredCount_PlotList.append(recoveredCount)
+        mutatedCount_PlotList.append(mutatedCount)
+
+
+    # Prints out the number of suscpetibles, infected, mutated, and dead at the end of the simulation
+    print("*********************************")
+    print("Number of Susceptibles: " + str(susceptibleCount) )
+    print("Number of Infected: " + str(infectedCount) )
+    print("Number of Mutated: " + str(mutatedCount))
+    print("Number of Recovered: " + str(recoveredCount))
+    print("Number of Dead: " + str(deadCount))
+    print("Ended on Day: "+str(t))
+    print("*********************************")
+
+
+    # Graph Creation
+    plt.plot(infectedCount_PlotList, color = 'r')
+    plt.plot(susceptibleCount_PlotList, color = 'b')
+    plt.plot(mutatedCount_PlotList, color = 'g')
+    plt.plot(recoveredCount_PlotList, color = 'purple')
+    plt.plot(deadCount_PlotList, color = 'y')
+    plt.title('Zombiola')
+    plt.xlabel('Time ( Days )')
+    plt.ylabel('Population Size')
+    plt.legend(["Infected", "Susceptible", "Mutated", "Recovered", "Dead"])
+    plt.show()
+
+    # NOT WORKING FOR NO DISCERNABLE REASON
+    # SHOULD: CLOSE CURRENT FIGURE
+    # ACTUALLY: DOES NOTHING, DOES NOT DISPLAY ERROR
+    time.sleep(2)
+    currentFigure = matplotlib.pyplot.gcf()
+    plt.close(currentFigure)
+
+
+
+Main()
